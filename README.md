@@ -3,7 +3,7 @@
 Command-line tool for downloading Vanilla, Paper, and Purpur Minecraft server jars.
 
 <p align="center">
-  <video src="./cli-preview.gif" width="800" controls autoplay loop muted></video>
+  <img src="./cli-preview.gif" alt="msc preview" width="800">
 </p>
 
 ## Features
