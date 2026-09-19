@@ -9,6 +9,7 @@ const api_link = {
   vanilla: "https://launchermeta.mojang.com/mc/game/version_manifest.json",
   paper: "https://fill.papermc.io/v3/projects/paper",
   purpur: "https://api.purpurmc.org/v2/purpur",
+  fabric: "https://meta.fabricmc.net/v2/versions",
 };
 
 if (core === "-h" || core === "--help" || !core) {
@@ -19,7 +20,7 @@ if (core === "-h" || core === "--help" || !core) {
 
 function getVanillaUrl(version) {
   return fetch(api_link.vanilla)
-    .then((responce) => responce.json())
+    .then((response) => response.json())
     .then((data) => {
       const info = data.versions.find((item) => item.id === version);
       if (!info) {
@@ -29,13 +30,13 @@ function getVanillaUrl(version) {
       return info;
     })
     .then((info) => fetch(info.url))
-    .then((responce) => responce.json())
+    .then((response) => response.json())
     .then((data) => data.downloads.server.url);
 }
 
 function getPaperUrl(version) {
   return fetch(`${api_link.paper}/versions/${version}/builds`)
-    .then((responce) => responce.json())
+    .then((response) => response.json())
     .then((ids) => {
       if (ids.ok === false) {
         console.log(`Error: version ${version} not found`);
@@ -46,7 +47,7 @@ function getPaperUrl(version) {
     .then((latestId) =>
       fetch(`${api_link.paper}/versions/${version}/builds/${latestId}`),
     )
-    .then((responce) => responce.json())
+    .then((response) => response.json())
     .then((data) => data.downloads["server:default"].url);
 }
 
@@ -61,6 +62,23 @@ function getPurpurUrl(version) {
       const latestBuild = data.builds.latest;
       return `${api_link.purpur}/${version}/${latestBuild}/download`;
     });
+}
+
+function getFabricUrl(version) {
+  return Promise.all([
+    fetch(`${api_link.fabric}/loader/${version}`).then((response) =>
+      response.json(),
+    ),
+    fetch(`${api_link.fabric}/installer`).then((response) => response.json()),
+  ]).then(([loaderData, installerData]) => {
+    if (!loaderData || loaderData.length === 0) {
+      console.log(`Error: version ${version} not found`);
+      process.exit(1);
+    }
+    const latestBuild = loaderData[0].loader.version;
+    const installerVersion = installerData[0].version;
+    return `${api_link.fabric}/loader/${version}/${latestBuild}/${installerVersion}/server/jar`;
+  });
 }
 
 function downloadCore(coreName, version, getUrlFn) {
@@ -117,6 +135,10 @@ switch (core) {
   case "purpur":
     console.log(`Purpur ${version} has been selected`);
     downloadCore("purpur", version, getPurpurUrl);
+    break;
+  case "fabric":
+    console.log(`Fabric ${version} has been selected`);
+    downloadCore("fabric", version, getFabricUrl);
     break;
   default:
     console.log(`Unknown core ${core}`);

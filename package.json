@@ -1,11 +1,11 @@
 {
   "name": "msc",
   "version": "1.0.0",
-  "description": "Command-line tool for downloading Vanilla, Paper, and Purpur Minecraft server jars",
+  "description": "Command-line tool for downloading Vanilla, Paper, Purpur and Fabric Minecraft server jars",
   "main": "index.js",
   "scripts": {
-    "build:win": "pkg index.js --targets latest-win-x64 --output msc-win.exe",
-    "build": "pkg index.js --targets latest-linux-x64 --output msc-linux"
+    "build:win": "pkg index.js --targets latest-win-x64 --output ./build/msc-win.exe",
+    "build": "pkg index.js --targets latest-linux-x64 --output ./build/msc-linux"
   },
   "bin": {
     "msc": "./index.js"

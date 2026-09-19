@@ -1,6 +1,6 @@
 # msc (Minecraft Server Creator)
 
-Command-line tool for downloading Vanilla, Paper, and Purpur Minecraft server jars.
+Command-line tool for downloading Vanilla, Paper, Purpur and Fabric Minecraft server jars.
 
 <p align="center">
   <img src="./cli-preview.gif" alt="msc preview" width="800">
@@ -8,7 +8,7 @@ Command-line tool for downloading Vanilla, Paper, and Purpur Minecraft server ja
 
 ## Features
 
-- Downloads server cores directly from official sources (`vanilla`, `paper`, `purpur`).
+- Downloads server cores directly from official sources (`vanilla`, `paper`, `purpur`, `fabric`).
 - Automatically generates `eula.txt`.
 - Creates launch scripts (`start.sh` for Linux or `start.bat` for Windows) with pre-configured **Aikar's Flags**.
 - Auto-detects OS platform to generate the correct executable script.
@@ -39,6 +39,12 @@ msc paper 1.19.2 5G
 
 ```bash
 msc purpur 26.2 4G
+```
+
+- Fabric
+
+```bash
+msc fabric 1.16.5 4G
 ```
 
 ## Building from Source
