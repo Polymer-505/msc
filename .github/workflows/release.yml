@@ -1,0 +1,44 @@
+name: Release MSC
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Downloading code from a repository
+        uses: actions/checkout@v4
+
+      - name: Installing Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compiling and Packaging Binaries
+        run: |
+          # Linux x64 & ARM64
+          npm run build && tar -czf msc-linux-x64.tar.gz -C ./build msc-linux
+          npm run "build(arm64)" && tar -czf msc-linux-arm64.tar.gz -C ./build msc-linux-arm64
+
+          # Windows x64 & ARM64
+          npm run build:win && zip -j msc-win-x64.zip ./build/msc-win.exe
+          npm run "build:win(arm64)" && zip -j msc-win-arm64.zip ./build/msc-win-arm64.exe
+
+      - name: Publishing a release on GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: |
+            msc-linux-x64.tar.gz
+            msc-linux-arm64.tar.gz
+            msc-win-x64.zip
+            msc-win-arm64.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

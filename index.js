@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require("fs");
+const child_process = require("child_process");
 const { pipeline } = require("stream/promises");
 
 const [core, version, ram] = process.argv.slice(2);
@@ -10,6 +11,7 @@ const api_link = {
   paper: "https://fill.papermc.io/v3/projects/paper",
   purpur: "https://api.purpurmc.org/v2/purpur",
   fabric: "https://meta.fabricmc.net/v2/versions",
+  forge: "https://files.minecraftforge.net/net/minecraftforge/forge",
 };
 
 if (core === "-h" || core === "--help" || !core) {
@@ -81,6 +83,19 @@ function getFabricUrl(version) {
   });
 }
 
+function getForgeUrl(version) {
+  return fetch(`${api_link.forge}/promotions_slim.json`)
+    .then((response) => response.json())
+    .then((data) => {
+      const latestBuild = data.promos[`${version}-latest`];
+      if (!latestBuild) {
+        console.log(`Error: version ${version} not found`);
+        process.exit(1);
+      }
+      return `https://maven.minecraftforge.net/net/minecraftforge/forge/${version}-${latestBuild}/forge-${version}-${latestBuild}-installer.jar`;
+    });
+}
+
 function downloadCore(coreName, version, getUrlFn) {
   getUrlFn(version)
     .then((downloadUrl) => {
@@ -96,7 +111,16 @@ function downloadCore(coreName, version, getUrlFn) {
     })
     .then(() => console.log(`${coreName}.jar download successful`))
     .then(() => {
-      createStartSh(coreName);
+      if (coreName === "forge") {
+        console.log("Starting the forge installation");
+        child_process.execSync("java -jar forge.jar --installServer", {
+          stdio: "inherit",
+        });
+        fs.rmSync("forge.jar");
+        fs.rmSync("forge.jar.log", { force: true });
+      } else {
+        createStartSh(coreName);
+      }
       createEulaTxt();
     })
     .catch((error) => console.error("Error downloading:", error));
@@ -139,6 +163,10 @@ switch (core) {
   case "fabric":
     console.log(`Fabric ${version} has been selected`);
     downloadCore("fabric", version, getFabricUrl);
+    break;
+  case "forge":
+    console.log(`Forge ${version} has been selected`);
+    downloadCore("forge", version, getForgeUrl);
     break;
   default:
     console.log(`Unknown core ${core}`);

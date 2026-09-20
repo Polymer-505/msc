@@ -1,17 +1,32 @@
 {
   "name": "msc",
-  "version": "1.0.0",
-  "description": "Command-line tool for downloading Vanilla, Paper, Purpur and Fabric Minecraft server jars",
+  "version": "1.2.0",
+  "description": "Command-line tool for downloading popular Minecraft server jars.",
   "main": "index.js",
   "scripts": {
     "build:win": "pkg index.js --targets latest-win-x64 --output ./build/msc-win.exe",
-    "build": "pkg index.js --targets latest-linux-x64 --output ./build/msc-linux"
+    "build:win(arm64)": "pkg index.js --targets latest-win-arm64 --output ./build/msc-win-arm64.exe",
+    "build": "pkg index.js --targets latest-linux-x64 --output ./build/msc-linux",
+    "build(arm64)": "pkg index.js --targets latest-linux-arm64 --output ./build/msc-linux-arm64"
   },
   "bin": {
     "msc": "./index.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "minecraft",
+    "minecraft-server",
+    "cli",
+    "minecraft-server-creator",
+    "paper",
+    "purpur",
+    "fabric",
+    "forge",
+    "vanilla",
+    "aikar-flags",
+    "download",
+    "automation"
+  ],
+  "author": "Polymer-505",
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {

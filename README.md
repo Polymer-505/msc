@@ -1,6 +1,6 @@
 # msc (Minecraft Server Creator)
 
-Command-line tool for downloading Vanilla, Paper, Purpur and Fabric Minecraft server jars.
+Command-line tool for downloading popular Minecraft server jars.
 
 <p align="center">
   <img src="./cli-preview.gif" alt="msc preview" width="800">
@@ -47,6 +47,12 @@ msc purpur 26.2 4G
 msc fabric 1.16.5 4G
 ```
 
+- Forge
+
+```bash
+msc forge 1.20.1 5G
+```
+
 ## Building from Source
 
 If you want to compile `msc` into a standalone executable file, use `@yao-pkg/pkg`:
@@ -59,14 +65,26 @@ If you want to compile `msc` into a standalone executable file, use `@yao-pkg/pk
 
 2. **Build executables:**
 
-- For Windows (msc.exe)
+- For linux (msc-linux)
+
+```bash
+   npm run build
+```
+
+- For linux arm64 (msc-linux-arm64)
+
+```bash
+   npm run build(arm64)
+```
+
+- For Windows (msc-win.exe)
 
 ```bash
    npm run build:win
 ```
 
-- For linux (msc)
+- For Windows arm64 (msc-win-arm64.exe)
 
 ```bash
-   npm run build
+   npm run build:win(arm64)
 ```
