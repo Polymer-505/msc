@@ -1,6 +1,6 @@
 {
   "name": "@polymer505/msc",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Command-line tool for downloading popular Minecraft server jars.",
   "repository": {
     "type": "git",
