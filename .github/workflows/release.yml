@@ -27,11 +27,11 @@ jobs:
         run: |
           # Linux x64 & ARM64
           npm run build && tar -czf msc-linux-x64.tar.gz -C ./build msc-linux
-          npm run "build(arm64)" && tar -czf msc-linux-arm64.tar.gz -C ./build msc-linux-arm64
+          npm run build-arm64 && tar -czf msc-linux-arm64.tar.gz -C ./build msc-linux-arm64
 
           # Windows x64 & ARM64
           npm run build:win && zip -j msc-win-x64.zip ./build/msc-win.exe
-          npm run "build:win(arm64)" && zip -j msc-win-arm64.zip ./build/msc-win-arm64.exe
+          npm run build:win-arm64 && zip -j msc-win-arm64.zip ./build/msc-win-arm64.exe
 
       - name: Publishing a release on GitHub
         uses: softprops/action-gh-release@v2

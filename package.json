@@ -1,17 +1,32 @@
 {
-  "name": "msc",
+  "name": "@polymer505/msc",
   "version": "1.2.0",
   "description": "Command-line tool for downloading popular Minecraft server jars.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Polymer-505/msc"
+  },
+  "homepage": "https://github.com/Polymer-505/msc#readme",
+  "bugs": {
+    "url": "https://github.com/Polymer-505/msc/issues"
+  },
   "main": "index.js",
   "scripts": {
     "build:win": "pkg index.js --targets latest-win-x64 --output ./build/msc-win.exe",
-    "build:win(arm64)": "pkg index.js --targets latest-win-arm64 --output ./build/msc-win-arm64.exe",
+    "build:win-arm64": "pkg index.js --targets latest-win-arm64 --output ./build/msc-win-arm64.exe",
     "build": "pkg index.js --targets latest-linux-x64 --output ./build/msc-linux",
-    "build(arm64)": "pkg index.js --targets latest-linux-arm64 --output ./build/msc-linux-arm64"
+    "build-arm64": "pkg index.js --targets latest-linux-arm64 --output ./build/msc-linux-arm64"
   },
   "bin": {
     "msc": "./index.js"
   },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "index.js",
+    "LICENSE"
+  ],
   "keywords": [
     "minecraft",
     "minecraft-server",
@@ -29,7 +44,11 @@
   "author": "Polymer-505",
   "license": "MIT",
   "type": "commonjs",
-  "dependencies": {
+  "devDependencies": {
     "@yao-pkg/pkg": "^6.22.0"
+  },
+  "dependencies": {
+    "cli-progress": "^3.12.0",
+    "picocolors": "^1.1.1"
   }
 }
