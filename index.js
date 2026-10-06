@@ -50,84 +50,102 @@ if (!ramMatch) {
 }
 
 // Get vanilla kernel link
-function getVanillaUrl(version) {
-  return fetch(api_link.vanilla)
-    .then((response) => response.json())
-    .then((data) => {
-      const info = data.versions.find((item) => item.id === version);
-      if (!info) {
-        console.log(pc.red(`Error: version ${version} not found`));
-        process.exit(1);
-      }
-      return info;
-    })
-    .then((info) => fetch(info.url))
-    .then((response) => response.json())
-    .then((data) => data.downloads.server.url);
-}
-
-// Get paper kernel link
-function getPaperUrl(version) {
-  return fetch(`${api_link.paper}/versions/${version}/builds`)
-    .then((response) => response.json())
-    .then((ids) => {
-      if (ids.ok === false) {
-        console.log(pc.red(`Error: version ${version} not found`));
-        process.exit(1);
-      }
-      return ids[0].id;
-    })
-    .then((latestId) =>
-      fetch(`${api_link.paper}/versions/${version}/builds/${latestId}`),
-    )
-    .then((response) => response.json())
-    .then((data) => data.downloads["server:default"].url);
-}
-
-// Get purpur kernel link
-function getPurpurUrl(version) {
-  return fetch(`${api_link.purpur}/${version}`)
-    .then((response) => response.json())
-    .then((data) => {
-      if (!data.builds) {
-        console.log(pc.red(`Error: version ${version} not found`));
-        process.exit(1);
-      }
-      const latestBuild = data.builds.latest;
-      return `${api_link.purpur}/${version}/${latestBuild}/download`;
-    });
-}
-
-// Get fabric kernel link
-function getFabricUrl(version) {
-  return Promise.all([
-    fetch(`${api_link.fabric}/loader/${version}`).then((response) =>
-      response.json(),
-    ),
-    fetch(`${api_link.fabric}/installer`).then((response) => response.json()),
-  ]).then(([loaderData, installerData]) => {
-    if (!loaderData || loaderData.length === 0) {
+async function getVanillaUrl(version) {
+  try {
+    const response = await fetch(api_link.vanilla);
+    const data = await response.json();
+    const info = data.versions.find((item) => item.id === version);
+    if (!info) {
       console.log(pc.red(`Error: version ${version} not found`));
       process.exit(1);
     }
-    const latestBuild = loaderData[0].loader.version;
-    const installerVersion = installerData[0].version;
+    const infoUrl = await fetch(info.url);
+    const infoUrlData = await infoUrl.json();
+    return infoUrlData.downloads.server.url;
+  } catch (error) {
+    console.log(pc.red(error));
+  }
+}
+
+// Get paper kernel link
+async function getPaperUrl(version) {
+  try {
+    const response = await fetch(
+      `${api_link.paper}/versions/${version}/builds`,
+    );
+    const data = await response.json();
+    if (data.ok === false) {
+      console.log(pc.red(`Error: version ${version} not found`));
+      process.exit(1);
+    }
+    const latestId = data[0].id;
+
+    const latestBuild = await fetch(
+      `${api_link.paper}/versions/${version}/builds/${latestId}`,
+    );
+
+    const dowloadUrlData = await latestBuild.json();
+    return dowloadUrlData.downloads["server:default"].url;
+  } catch (error) {
+    console.log(pc.red(error));
+  }
+}
+
+// Get purpur kernel link
+async function getPurpurUrl(version) {
+  try {
+    const response = await fetch(`${api_link.purpur}/${version}`);
+    const data = await response.json();
+
+    if (!data.builds) {
+      console.log(pc.red(`Error: version ${version} not found`));
+      process.exit(1);
+    }
+    const latestBuild = data.builds.latest;
+    return `${api_link.purpur}/${version}/${latestBuild}/download`;
+  } catch (error) {
+    console.log(pc.red(error));
+  }
+}
+
+// Get fabric kernel link
+async function getFabricUrl(version) {
+  try {
+    const [loaderData, installerData] = await Promise.all([
+      fetch(`${api_link.fabric}/loader/${version}`),
+      fetch(`${api_link.fabric}/installer`),
+    ]);
+
+    const loaderDataObj = await loaderData.json();
+    const installerDataObj = await installerData.json();
+
+    if (!loaderDataObj || loaderDataObj.length === 0) {
+      console.log(pc.red(`Error: version ${version} not found`));
+      process.exit(1);
+    }
+    const latestBuild = loaderDataObj[0].loader.version;
+    const installerVersion = installerDataObj[0].version;
     return `${api_link.fabric}/loader/${version}/${latestBuild}/${installerVersion}/server/jar`;
-  });
+  } catch (error) {
+    console.log(pc.red(error));
+  }
 }
 
 // Get forge kernel link
-function getForgeUrl(version) {
-  return fetch(`${api_link.forge}/promotions_slim.json`)
-    .then((response) => response.json())
-    .then((data) => {
-      const latestBuild = data.promos[`${version}-latest`];
-      if (!latestBuild) {
-        console.log(pc.red(`Error: version ${version} not found`));
-        process.exit(1);
-      }
-      return `https://maven.minecraftforge.net/net/minecraftforge/forge/${version}-${latestBuild}/forge-${version}-${latestBuild}-installer.jar`;
-    });
+async function getForgeUrl(version) {
+  try {
+    const response = await fetch(`${api_link.forge}/promotions_slim.json`);
+    const data = await response.json();
+
+    const latestBuild = data.promos[`${version}-latest`];
+    if (!latestBuild) {
+      console.log(pc.red(`Error: version ${version} not found`));
+      process.exit(1);
+    }
+    return `https://maven.minecraftforge.net/net/minecraftforge/forge/${version}-${latestBuild}/forge-${version}-${latestBuild}-installer.jar`;
+  } catch (error) {
+    console.log(pc.red(error));
+  }
 }
 
 // Create start.sh or start.bat
@@ -137,17 +155,16 @@ function createStartSh(kernelName) {
   const ramInMb =
     unit.toUpperCase() === "G" ? parseInt(amount) * 1024 : parseInt(amount);
 
+  const javaFlags = `java -Xms${ramInMb}M -Xmx${ramInMb}M --add-modules=jdk.incubator.vector -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 -Dusing.aikars.flags=https://mcflags.emc.gs -Daikars.new.flags=true -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -jar ${kernelName}.jar nogui`;
+
   if (process.platform === "win32") {
-    fs.writeFileSync(
-      "start.bat",
-      `java -Xms${ramInMb}M -Xmx${ramInMb}M --add-modules=jdk.incubator.vector -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 -Dusing.aikars.flags=https://mcflags.emc.gs -Daikars.new.flags=true -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -jar ${kernelName}.jar nogui`,
-    );
-    console.log("File start.bat created successful");
+    fs.writeFileSync("start.bat", `${javaFlags}`);
+    console.log(pc.green("File start.bat created successful"));
   } else {
     fs.writeFileSync(
       "start.sh",
       `#!/bin/bash
-java -Xms${ramInMb}M -Xmx${ramInMb}M --add-modules=jdk.incubator.vector -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 -Dusing.aikars.flags=https://mcflags.emc.gs -Daikars.new.flags=true -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -jar ${kernelName}.jar nogui`,
+${javaFlags}`,
     );
     fs.chmodSync("start.sh", 0o755);
     console.log(pc.green("File start.sh created successful"));
@@ -160,55 +177,50 @@ function createEulaTxt() {
   console.log(pc.green("File eula.txt created successful"));
 }
 
-function downloadKernel(kernelName, version, getUrlFn) {
-  getUrlFn(version)
-    .then((downloadUrl) => {
-      console.log(`Downloading ${kernelName}...`);
-      return fetch(downloadUrl);
-    })
-    .then((response) => {
-      if (response.status !== 200) {
-        console.log(
-          pc.red(`Error downloading: server return code ${response.status}`),
-        );
-        process.exit(1);
-      }
-      const totalSize =
-        parseInt(response.headers.get("content-length"), 10) || 0;
-      const progressBar = new cliProgress.SingleBar(
-        {},
-        cliProgress.Presets.shades_classic,
+async function downloadKernel(kernelName, version, getUrlFn) {
+  try {
+    console.log(`Downloading ${kernelName}...`);
+    const downloadUrl = await getUrlFn(version);
+    const response = await fetch(downloadUrl);
+
+    if (response.status !== 200) {
+      console.log(
+        pc.red(`Error downloading: server return code ${response.status}`),
       );
-      progressBar.start(totalSize, 0);
-
-      const nodeStream = Readable.fromWeb(response.body);
-      nodeStream.on("data", (chunk) => {
-        progressBar.increment(chunk.length);
-      });
-
-      return pipeline(
-        nodeStream,
-        fs.createWriteStream(`${kernelName}.jar`),
-      ).then(() => progressBar.stop());
-    })
-    .then(() => console.log(pc.green(`${kernelName}.jar download successful`)))
-    .then(() => {
-      if (kernelName === "forge") {
-        console.log("Starting the forge installation");
-        child_process.execSync("java -jar forge.jar --installServer", {
-          stdio: "inherit",
-        });
-        fs.rmSync("forge.jar");
-        fs.rmSync("forge.jar.log", { force: true });
-      } else {
-        createStartSh(kernelName);
-      }
-      createEulaTxt();
-    })
-    .catch((error) => {
-      console.error(pc.red("Error downloading:"), error);
       process.exit(1);
+    }
+    const totalSize = parseInt(response.headers.get("content-length"), 10) || 0;
+    const progressBar = new cliProgress.SingleBar(
+      {},
+      cliProgress.Presets.shades_classic,
+    );
+    progressBar.start(totalSize, 0);
+
+    const nodeStream = Readable.fromWeb(response.body);
+    nodeStream.on("data", (chunk) => {
+      progressBar.increment(chunk.length);
     });
+
+    await pipeline(nodeStream, fs.createWriteStream(`${kernelName}.jar`));
+    progressBar.stop();
+
+    console.log(pc.green(`${kernelName}.jar download successful`));
+
+    if (kernelName === "forge") {
+      console.log("Starting the forge installation");
+      child_process.execSync("java -jar forge.jar --installServer", {
+        stdio: "inherit",
+      });
+      fs.rmSync("forge.jar");
+      fs.rmSync("forge.jar.log", { force: true });
+    } else {
+      createStartSh(kernelName);
+    }
+    createEulaTxt();
+  } catch (error) {
+    console.error(pc.red("Error downloading:"), error);
+    process.exit(1);
+  }
 }
 
 switch (kernel) {
